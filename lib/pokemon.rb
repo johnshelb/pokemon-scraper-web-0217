@@ -1,19 +1,37 @@
 class Pokemon
-  attr_reader :id, :name, :type, :db
-  def initialize(arg)
-    @id=arg[:id]
-    @name=arg[:name]
-    @type=arg[:type]
-    @db=arg[:db]
+  attr_accessor :id,:name,:type,:db, :hp
+  def initialize(pokeHash)
+    @id = pokeHash[:id]
+    @name = pokeHash[:name]
+    @type = pokeHash[:type]
+    @db = pokeHash[:db]
+    @hp = pokeHash[:hp]||nil
+
   end
 
-  def self.save(a,b,c)
-    c.execute("INSERT INTO pokemon (name, type) VALUES(?,?)",a,b)
+  def self.save(name,type,db)
+    sql = <<-SQL
+    INSERT INTO pokemon(name,type) VALUES (?, ?)
+    SQL
+    db.execute(sql,name,type)
   end
 
-  def self.find(id_num,db)
-    new_pok = db.execute("SELECT * FROM pokemon WHERE id=?",id_num).flatten
-    x=Pokemon.new({id:new_pok[0],name:new_pok[1],type:new_pok[2]})
+  def self.find(id,db)
+    sql = <<-SQL
+    SELECT * FROM pokemon WHERE id = ?
+    SQL
+    poke = db.execute(sql,id)
+    Pokemon.new(:id=>poke[0][0],:name=>poke[0][1],:type=>poke[0][2], :hp=>poke[0][3])
   end
+
+  def alter_hp(newHp,db)
+    sql= <<-SQL
+    UPDATE pokemon SET hp = ? WHERE name = ?
+    SQL
+    db.execute(sql,newHp,self.name)
+
+  end
+
+
 
 end
